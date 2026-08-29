@@ -1,0 +1,23 @@
+name: Build Livreo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Check files
+        run: |
+          echo "=== FICHIERS ==="
+          ls -la
+          echo "=== ZIP ==="
+          unzip -l LivreoAndroid_MVP-1.zip | head -50
