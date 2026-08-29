@@ -1,0 +1,48 @@
+name: Build Livreo APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check files
+        run: |
+          echo "=== FICHIERS ==="
+          ls -la
+
+      - name: Extract ZIP
+        run: |
+          mkdir -p project
+          unzip LivreoAndroid_MVP.zip -d project
+
+      - name: Check project
+        run: |
+          echo "=== PROJECT ==="
+          find project -maxdepth 3 -type f | head -100
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Make gradlew executable
+        run: |
+          chmod +x project/gradlew
+
+      - name: Build APK
+        working-directory: project
+        run: |
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Livreo-debug-apk
+          path: project/**/build/outputs/apk/**/*.apk
