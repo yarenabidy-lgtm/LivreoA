@@ -1,4 +1,4 @@
-name: Build Livreo
+name: Build Livreo APK
 
 on:
   workflow_dispatch:
@@ -8,16 +8,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          java-version: '24'
-          distribution: 'temurin'
+          distribution: temurin
+          java-version: '17'
 
-      - name: Check files
+      - name: Extraire le projet
         run: |
-          echo "=== FICHIERS ==="
-          ls -la
-          echo "=== ZIP ==="
-          unzip -l LivreoAndroid_MVP-1.zip | head -50
+          mkdir -p project
+          unzip -q LivreoAndroid_MVP-1.zip -d project
+          echo "=== Recherche de gradlew ==="
+          find project -name gradlew -type f
+
+      - name: Build APK
+        run: |
+          GRADLEW=$(find project -name gradlew -type f | head -n 1)
+          if [ -z "$GRADLEW" ]; then
+            echo "ERREUR: gradlew introuvable"
+            exit 1
+          fi
+
+          chmod +x "$GRADLEW"
+          PROJECT_DIR=$(dirname "$GRADLEW")
+          cd "$PROJECT_DIR"
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Livreo-APK
+          path: |
+            project/**/build/outputs/apk/**/*.apk
