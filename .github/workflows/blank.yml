@@ -1,48 +1,21 @@
-name: Build Livreo APK
-
-on:
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
       - name: Extraire le projet
         run: |
           mkdir -p project
           ZIP_FILE=$(find . -maxdepth 2 -type f -iname "*.zip" | head -n 1)
-echo "ZIP trouvé: $ZIP_FILE"
-unzip -q "$ZIP_FILE" -d project
+          echo "ZIP trouvé : $ZIP_FILE"
+          if [ -z "$ZIP_FILE" ]; then
+            echo "ERREUR : Aucun fichier ZIP trouvé"
+            exit 1
+          fi
+          unzip -q "$ZIP_FILE" -d project
           echo "=== Recherche de gradlew ==="
           find project -name gradlew -type f
 
-      - name: Build APK
+      - name: Créer un APK
         run: |
           GRADLEW=$(find project -name gradlew -type f | head -n 1)
           if [ -z "$GRADLEW" ]; then
-            echo "ERREUR: gradlew introuvable"
+            echo "ERREUR : gradlew introuvable"
             exit 1
           fi
-
           chmod +x "$GRADLEW"
-          PROJECT_DIR=$(dirname "$GRADLEW")
-          cd "$PROJECT_DIR"
-          ./gradlew assembleDebug --no-daemon
-
-      - name: Upload APK
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Livreo-APK
-          path: |
-            project/**/build/outputs/apk/**/*.apk
