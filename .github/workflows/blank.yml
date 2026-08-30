@@ -20,7 +20,9 @@ jobs:
       - name: Extraire le projet
         run: |
           mkdir -p project
-          unzip -q LivreoAndroid_MVP-1.zip -d project
+          ZIP_FILE=$(find . -maxdepth 2 -type f -iname "*.zip" | head -n 1)
+echo "ZIP trouvé: $ZIP_FILE"
+unzip -q "$ZIP_FILE" -d project
           echo "=== Recherche de gradlew ==="
           find project -name gradlew -type f
 
